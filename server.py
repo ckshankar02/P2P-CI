@@ -4,21 +4,14 @@ import threading
 import pickle
 
 
-<<<<<<< HEAD
 rfcList = []						#HOLDS THE LIST RFCS AND THE PEERS THAT HAVE THEM
 rfcLock = threading.Lock()
 activePeers = []					#HOLDS THE LIST OF ACTIVE PEERS IN THE P2P NETWORK
-=======
-rfcList = []
-rfcLock = threading.Lock()
-activePeers = []
->>>>>>> c1c6112ceb79c4cea60c349bac65f6b43810d582
 peerLock = threading.Lock()
 
 class clientHandler(threading.Thread):
 	def __init__(self, newTuple):
 		threading.Thread.__init__(self)
-<<<<<<< HEAD
 		self.status = ''
 		self.client = newTuple[0]
 		self.address = newTuple[1]
@@ -133,62 +126,6 @@ class clientHandler(threading.Thread):
 		
 def main():
 	#Creating Sockets to List on port 7734
-=======
-		self.client = newTuple[0]
-		self.address = newTuple[1]
-	
-	def parseMsg(self, decodedMsg):
-		m1 = decodedMsg.split("<cr><lf>")
-		m2 = []
-		for l in m1:
-			m2.append(str(l).split("<sp>"))
-		print(m2)
-		if(m2[0][0] in ('ADD','LOOKUP')):
-			return(m2[0][0], m2[0][2], m2[1][1], m2[2][1], m2[3][1])
-		else:
-			return(m2[0][0], m2[1][1], m2[2][1])
-	
-	def addRfc(self,msg):
-		rfcLock.acquire()
-		rfcList.append((msg[1],msg[4],msg[2],msg[3]))
-		rfcLock.release()		
-
-	
-	def lookUpRfc(self, msg):
-		listPeers=[]
-		rfcNum = msg[1]
-		for list in rfcList:
-			if(list[0]==rfcNum):
-				listPeers.append((list[2],list[3]))
-		
-		pickleDump = pickle.dumps(listPeers)
-		self.client.send(pickleDump)
-		
-	def listAll(self, msg):
-		peerInfoDump = pickle.dumps(activePeers)
-		self.client.send(peerInfoDump)
-	
-	def run(self):
-		peerLock.acquire()
-		activePeers.append(self.address)
-		peerLock.release()
-		flag = 0
-		while flag == 0:
-			receivedMsg = self.client.recv(1024)
-			decodedMsg = receivedMsg.decode('UTF-8')
-			actualMsg = self.parseMsg(decodedMsg)
-		
-			if actualMsg[0] == 'ADD':
-				self.addRfc(actualMsg)
-			elif actualMsg[0] == 'LOOKUP':
-				self.lookUpRfc(actualMsg)
-			else:
-				self.listAll(actualMsg)
-		
-		self.client.close()
-
-def main():
->>>>>>> c1c6112ceb79c4cea60c349bac65f6b43810d582
 	soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	
 	host = socket.gethostname()
 	port = 7734	
