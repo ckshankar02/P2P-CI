@@ -101,6 +101,7 @@ class clientHandler(threading.Thread):
 			except ConnectionResetError:
 				break;			
 			decodedMsg = receivedMsg.decode('UTF-8')
+			print(decodedMsg)
 			if len(decodedMsg) != 0:					#Checked to ensure connection close (CTRL+C)
 				actualMsg = self.parseMsg(decodedMsg)
 				if actualMsg[5] != 'P2P-CI/1.0':

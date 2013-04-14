@@ -35,7 +35,7 @@ class requestor(threading.Thread):
 			title = 'Title:'+sp+str(input("RFC title = "))
 			#sendMsg = method+sp+RFC+sp+'P2P-CI/2.0'+end+host+end+port+end+title+end+end	#Test for VERSION NOT SUPPORTED
 			#sendMsg = 'REMOVE'+sp+RFC+sp+version+end+host+end+port+end+title+end+end		#Test for BAD REQUEST				
-			#sendMsg = method+sp+RFC+sp+version+end+host+end+port+end+title+end+end			#PROPER REQUEST
+			sendMsg = method+sp+RFC+sp+version+end+host+end+port+end+title+end+end			#PROPER REQUEST
 		elif type == 'LOOKUP':			
 			RFC = 'RFC'+sp+str(input("RFC Number = "))
 			title = 'Title:'+sp+str(input("RFC title = "))
@@ -230,6 +230,7 @@ class uploader(threading.Thread):
 	def run(self):
 		receivedMsg = self.client.recv(1024)
 		decodedMsg = receivedMsg.decode('UTF-8')
+		print(decodedMsg)
 		actualMsg = self.parseMsg(decodedMsg)
 		self.respondToRequest(actualMsg)
 		
