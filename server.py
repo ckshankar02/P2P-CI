@@ -39,10 +39,10 @@ class clientHandler(threading.Thread):
 	
 	
 	#Adding RFC to Server
-	def addRfc(self,msg):
+	def addRfc(self,msg, addr):
 		status = '200 OK'
 		rfcLock.acquire()
-		rfcList.append((msg[1],msg[4],msg[2],msg[3]))
+		rfcList.append((msg[1],msg[4],addr[0],msg[3], addr[1]))
 		rfcLock.release()	
 		ack = 'RFC '+msg[1]+' '+msg[4]+' '+msg[2]+' '+msg[3]
 		self.sendMsgToClient(status, ack)
@@ -55,7 +55,7 @@ class clientHandler(threading.Thread):
 		sp = '<c>'
 		for list in rfcList:
 			if(list[0] == rfcNum):
-				listPeers = listPeers+list[0]+sp+list[1]+sp+list[2]+sp+list[3]+'\n'		
+				listPeers = listPeers+list[0]+sp+list[1]+sp+str(list[2])+sp+str(list[4])+sp+list[3]+'\n'		
 				
 		if len(listPeers) == 0:			#If the requested RFC is not available with any PEER in the network
 			status = '404 Not Found'
@@ -71,17 +71,17 @@ class clientHandler(threading.Thread):
 		listAll = ''
 		sp = '<c>'
 		for r in rfcList:
-			listAll = listAll+r[0]+sp+r[1]+sp+r[2]+sp+r[3]+'\n'
+			listAll = listAll+r[0]+sp+r[1]+sp+str(r[2])+sp+str(r[4])+sp+r[3]+'\n'
 		self.sendMsgToClient(status, listAll)
 		
 		
 	#Client Connection Termination Handler	
 	def  endClientHandler(self,addr):
-		print('Client has closed the connection')
+		print('Client ('+addr[0]+', '+str(addr[1])+') has closed the connection')
 		activePeers.remove(addr)
 		tempRfcList = list(rfcList)
 		for r in tempRfcList:
-			if r[2] == addr[0]:
+			if r[2] == addr[0] and r[4] == addr[1]:
 				rfcList.remove(r)
 		del tempRfcList
 	
@@ -110,7 +110,7 @@ class clientHandler(threading.Thread):
 				else:
 					method = actualMsg[0]
 					if method == 'ADD':
-						self.addRfc(actualMsg)
+						self.addRfc(actualMsg, self.address)
 					elif method == 'LOOKUP':
 						self.lookUpRfc(actualMsg)
 					elif method == 'LIST':

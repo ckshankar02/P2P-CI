@@ -15,10 +15,25 @@ class requestor(threading.Thread):
 	def run(self):
 		#Opens a permanent connection with the server
 		cliSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		host = socket.gethostbyname(socket.gethostname())		#Need to be changed when running clients and server on different Machines
+		host = input('Host IP Address = ')
 		port = 7734
 		cliSocket.connect((host,port))
+		print('Select an Option Below')
+		print('1. Add Available RFCs Automatically to Server')
+		print('2. Manually ADD the RFCs Later')
+		RFCAddOption = int(input('Option = '))
+		if RFCAddOption == 1:
+			self.sendRFCListToServer(cliSocket)
 		self.requestServer(cliSocket)	
+	
+	def sendRFCListToServer(self, cliSoc):
+		currRFCList = []
+		for f in os.listdir("."):
+			if f.startswith("RFC"):
+				currRFCList.append(f)
+		print('Sending RFC Information to Server....')
+		for rfc in currRFCList:
+			self.sendRFCAddRequest(cliSoc, 0, rfc)
 	
 	#Forms all the messages to be sent to the server.
 	#Uses the method ADD, LOOKUP and LIST as criteria to generate message
@@ -32,10 +47,11 @@ class requestor(threading.Thread):
 		sendMsg = ''
 		if type == 'ADD':			
 			RFC = 'RFC'+sp+str(input("RFC Number = "))
-			title = 'Title:'+sp+str(input("RFC title = "))
-			#sendMsg = method+sp+RFC+sp+'P2P-CI/2.0'+end+host+end+port+end+title+end+end	#Test for VERSION NOT SUPPORTED
-			#sendMsg = 'REMOVE'+sp+RFC+sp+version+end+host+end+port+end+title+end+end		#Test for BAD REQUEST				
+			title = 'Title:'+sp+str(input("RFC title = "))	
 			sendMsg = method+sp+RFC+sp+version+end+host+end+port+end+title+end+end			#PROPER REQUEST
+			
+			#sendMsg = method+sp+RFC+sp+'P2P-CI/2.0'+end+host+end+port+end+title+end+end	#Test for VERSION NOT SUPPORTED
+			#sendMsg = 'REMOVE'+sp+RFC+sp+version+end+host+end+port+end+title+end+end		#Test for BAD REQUEST			
 		elif type == 'LOOKUP':			
 			RFC = 'RFC'+sp+str(input("RFC Number = "))
 			title = 'Title:'+sp+str(input("RFC title = "))
@@ -43,7 +59,15 @@ class requestor(threading.Thread):
 		elif type == 'GET':
 			RFC = 'RFC'+sp+rfcNo
 			OS = 'OS:'+sp+platform.platform()
-			sendMsg = method+sp+RFC+sp+version+end+host+end+OS+end+end
+			sendMsg = method+sp+RFC+sp+version+end+host+end+OS+end+end						#PROPER REQUEST
+			
+			#sendMsg = method+sp+RFC+sp+'P2P-CI/2.0'+end+host+end+OS+end+end				#Test for VERSION NOT SUPPORTED
+			#sendMsg = 'PUT'+sp+RFC+sp+version+end+host+end+OS+end+end						#Test for BAD REQUEST
+		elif type == 'CURR_ADD':
+			method = 'ADD'
+			RFC = 'RFC'+sp+rfcNo
+			title = 'Title:'+sp+'RFC'+sp+rfcNo
+			sendMsg = method+sp+RFC+sp+version+end+host+end+port+end+title+end+end			
 		else:
 			sendMsg = method+sp+version+end+host+end+port+end+end		
 		return sendMsg				
@@ -55,7 +79,7 @@ class requestor(threading.Thread):
 			print("\n1. Add RFC to Server \n2. Look Up an RFC \n3. Request Whole Index List \n4. Leave the Network")
 			option = str(input("Option = "))
 			if option == '1':
-				self.sendRFCAddRequest(cliSoc)
+				self.sendRFCAddRequest(cliSoc, 1, 0)
 			elif option == '2':
 				self.lookUpRequest(cliSoc)
 			elif option == '3':
@@ -67,8 +91,11 @@ class requestor(threading.Thread):
 				print("Invalid Selection. Re-enter the Option!!!")
 	
 	#RFC Add Request
-	def sendRFCAddRequest(self, cliSoc):
-		sendMessage = self.formMessage('ADD',0)
+	def sendRFCAddRequest(self, cliSoc, queryType, rfc):
+		if queryType == 0:
+			sendMessage = self.formMessage('CURR_ADD',rfc[3:len(rfc)-4])
+		else:
+			sendMessage = self.formMessage('ADD',0)
 		cliSoc.send(bytes(sendMessage,'UTF-8'))	
 		data = cliSoc.recv(2048) 
 		decodedData = data.decode('UTF-8')
@@ -114,7 +141,7 @@ class requestor(threading.Thread):
 		#extracting the RFC Number, Host IP address, Host Port
 		rfc = selectedHost[0]
 		host = selectedHost[2]
-		port = int(selectedHost[3])
+		port = int(selectedHost[4])
 		
 		#opengin a socket to download from the selected peer
 		downloadSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
