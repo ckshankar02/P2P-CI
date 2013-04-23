@@ -3,7 +3,6 @@ import sys
 import threading
 import pickle
 
-
 rfcList = []						#HOLDS THE LIST RFCS AND THE PEERS THAT HAVE THEM
 rfcLock = threading.Lock()
 activePeers = []					#HOLDS THE LIST OF ACTIVE PEERS IN THE P2P NETWORK
